@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StarView">
+        <attr name="background_color" format="color"/>//背景色
+        <attr name="border_color" format="color"/>//线条颜色
+        <attr name="border_width" format="dimension"/>//线条宽度
+        <attr name="text_size"     format="dimension"/> //字体大小
+        <attr name="text_color"     format="color"/>    //字体颜色
+    </declare-styleable>
+    <declare-styleable name="BarView">
+        <attr name="bd_color" format="color"/>//柱形颜色
+        <attr name="gps_color" format="color"/>//柱形颜色
+        <attr name="glns_color" format="color"/>//柱形颜色
+        <attr name="sbas_color" format="color"/>//柱形颜色
+    </declare-styleable>
+    <declare-styleable name="ReceiverSpeedView">
+        <attr name="test_size" format="dimension"/>//刻度字体大小
+        <attr name="arcWidth" format="dimension"/>//内弧厚度
+        <attr name="pointerColor" format="color"/> //指针颜色
+        <attr name="big_text_color" format="color"/> //速度读数的颜色
+        <attr name="big_text_size" format="dimension"/> //速度读书的大小
+        <attr name="unit_text_size" format="dimension"/>//速度单位字体大小
+        <attr name="unit_text_color" format="color"/>//速度单位字体颜色
+    </declare-styleable>
+    <declare-styleable name="HeadingView">
+        <attr name="true_Arc_Color" format="color"/>//真北弧形的颜色
+        <attr name="mag_Arc_Color" format="color"/>//磁北弧形的颜色
+        <attr name="text_BackGround_Color" format="color"/> 文字背景圆的颜色
+    </declare-styleable>
+</resources>

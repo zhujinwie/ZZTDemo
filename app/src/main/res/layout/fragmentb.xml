@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zjw="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    >
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <com.zhujinwei.zztdemo.view.HeadingView
+            android:id="@+id/hv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            zjw:mag_Arc_Color="#ff5722"
+            zjw:true_Arc_Color="#5677fc"
+            zjw:text_BackGround_Color="#e6ee9c"
+            />
+    </FrameLayout>
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <com.zhujinwei.zztdemo.view.ReceiverSpeedView
+            android:id="@+id/rsv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            zjw:arcWidth="3dp"
+            zjw:big_text_color="#5d4037"
+            zjw:big_text_size="20sp"
+            zjw:pointerColor="#d01716"
+            zjw:test_size="10sp"
+            zjw:unit_text_color="#eeeeee"
+            zjw:unit_text_size="5sp"
+
+            />
+
+    </FrameLayout>
+
+
+
+</LinearLayout>

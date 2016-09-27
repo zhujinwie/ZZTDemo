@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zjw="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+<com.zhujinwei.zztdemo.view.StarView
+    android:id="@+id/starview"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    zjw:border_color="#eceff1"
+    zjw:border_width="1sp"
+    zjw:text_color="#607d8b"
+    zjw:text_size="2sp"
+    />
+<com.zhujinwei.zztdemo.view.BarView
+    android:id="@+id/barview"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    zjw:bd_color="#0a7e07"
+    zjw:glns_color="#512da8"
+    zjw:gps_color="#d01716"
+    zjw:sbas_color="#c2185b"/>
+</LinearLayout>
