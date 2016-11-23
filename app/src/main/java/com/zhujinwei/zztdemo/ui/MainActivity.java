@@ -1,5 +1,4 @@
 package com.zhujinwei.zztdemo.ui;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.zhujinwei.zztdemo.R;
@@ -35,8 +35,6 @@ public class MainActivity extends AppCompatActivity {
     public  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         init();
     }
 
@@ -117,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
+        Intent intent=new Intent(this,ServiceUpdateUI.class);
+        stopService(intent);
     }
 
     public class UpdateUIBroadcastReceiver extends BroadcastReceiver{

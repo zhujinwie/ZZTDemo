@@ -81,7 +81,7 @@ public class StarView extends View implements UpdateCoordListener{
         textPaint.setColor(mTextColor);
         textPaint.setStrokeWidth(mTextSize);
         textPaint.setTextAlign(Paint.Align.CENTER);
-
+        textPaint.setTextSize(30);
        path=new Path();
         //TODO
         texts=new String[]{"N","NNE","NEE","E","EES","ESS","S","MSS","MMS","M","MMN","MNN"};
@@ -191,6 +191,7 @@ public class StarView extends View implements UpdateCoordListener{
         if(type.equals(SatelliteType.GPS)&(satellites!=null)){
             drawPointsGPS(canvas,satellites);
         }
+        mPaint.setStyle(Paint.Style.STROKE);
     }
     /**
      * 在坐标系上打点 GLN
@@ -210,10 +211,11 @@ public class StarView extends View implements UpdateCoordListener{
      * @param canvas,satellites
      * */
     private void drawPointsGPS(Canvas canvas, List<Satellite> satellites) {
-
+        mPaint.setStyle(Paint.Style.FILL);
         Log.d("TAG","xyz"+"GPS方法执行了！");
         mPaint.setColor(Color.GREEN);
-        textPaint.setColor(Color.GREEN);
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextSize(15);
         for(Satellite satellite:satellites){
             path.reset();
             int azi=satellite.getAzimuth();  //方位
@@ -222,9 +224,9 @@ public class StarView extends View implements UpdateCoordListener{
             float pointY=(float)(mRectF.centerY()-radius*Math.cos(Math.PI*pit/180)*Math.cos(Math.PI*azi/180));
             float pointX=(float)(mRectF.centerX()+radius*Math.cos(Math.PI*pit/180)*Math.sin(Math.PI*azi/180));
             Log.d("TAG", "xyz"+"pointY="+pointY+"pointX="+pointX+"mRectF.centerY="+mRectF.centerY()+"mRectF.centerX="+mRectF.centerX()+"radius="+radius);
-            canvas.drawCircle(pointX,pointY,5,mPaint);
-            path.moveTo(pointX-10,pointY-10);
-            path.lineTo(pointX+10,pointY-10);
+            canvas.drawCircle(pointX,pointY,20,mPaint);
+            path.moveTo(pointX-20,pointY-20);
+            path.lineTo(pointX+20,pointY-20);
             canvas.drawTextOnPath("G"+satellite.getId(),path,0,0,textPaint);
         }
 

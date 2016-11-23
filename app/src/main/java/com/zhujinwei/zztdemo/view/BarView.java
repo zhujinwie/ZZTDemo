@@ -87,7 +87,7 @@ public class BarView extends View implements UpdateCoordListener{
         axisPaint.setColor(Color.DKGRAY);
         linePaint.setColor(Color.LTGRAY);
         textPaint.setColor(Color.BLACK);
-
+        textPaint.setTextSize(20);
 
         linePaint.setPathEffect(new DashPathEffect(new float[]{3,3,3,3}, 1));//虚线设置
     }
