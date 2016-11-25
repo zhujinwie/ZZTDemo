@@ -2,6 +2,7 @@ package com.zhujinwei.zztdemo.service;
 
 import android.app.AlertDialog;
 import android.app.Service;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.IBinder;
@@ -9,6 +10,8 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 import com.zhujinwei.zztdemo.R;
+import com.zhujinwei.zztdemo.utils.FilesUtl;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,7 +48,7 @@ public class ServiceUpdateUI extends Service{
             int available=0;
             //实际接受到的数据包
             int currentLength=0;
-            //协议头长度2个字节
+            //协议头长度
             int headerLength=1;
 
             //获取串口输出的循环
@@ -88,6 +91,7 @@ public class ServiceUpdateUI extends Service{
                 //如果两者都没有找到，则舍弃数据跳出循环等待继续接受数据
                 while (currentLength>=headerLength){
                     ++cursor;
+                    --currentLength;
                     //找到语句标志头'$'
                     if(buffer[cursor]=='$'){
                         start=cursor;
@@ -95,21 +99,29 @@ public class ServiceUpdateUI extends Service{
                     }
                     //在找到语句标志头后查找换行符
                     if(buffer[cursor]=='\n'){
-                        currentLength-=cursor;
                         onDataReceived(buffer,start,cursor);
                         break;
                     }
+
                 }
-
-
-
+                //残余字节移动到缓冲区首
+                if(currentLength>0&&cursor>0){
+                    System.arraycopy(buffer,cursor,buffer,0,currentLength);
+                }
             }
         }
     }
 
     private void showbuffer(byte[] buffer, int ava) {
-        for(int i=0;i<ava;i++){
-            Log.d("TAG","xyz 打印流中元素 byte["+i+"]"+"="+buffer[i]);
+
+        try {
+            for(int i=0;i<ava;i++){
+                Log.d("TAG","xyz 打印流中元素 byte["+i+"]"+"="+buffer[i]);
+            }
+            //存储数据到本地文档里
+            FilesUtl.writeFile("Tests",buffer, Context.MODE_APPEND);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -156,11 +168,12 @@ public class ServiceUpdateUI extends Service{
     }
 
     protected  void onDataReceived(final byte[] buffer, int start,int end){
-
-
-
-
-    }
+        String data=new String(buffer,start,end-start+1);
+        Intent intent=new Intent();
+        intent.putExtra("data",data);
+        sendBroadcast(intent);
+        Log.d("TAG","xyz 提莫的总算接收到合法的数据一条："+data);
+}
 
 
 
