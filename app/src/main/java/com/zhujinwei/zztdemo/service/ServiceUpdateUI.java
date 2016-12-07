@@ -10,7 +10,8 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 import com.zhujinwei.zztdemo.R;
-import com.zhujinwei.zztdemo.utils.FilesUtl;
+import com.zhujinwei.zztdemo.ui.MainActivity;
+import com.zhujinwei.zztdemo.utils.FilesUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,17 +114,16 @@ public class ServiceUpdateUI extends Service{
     }
 
     private void showbuffer(byte[] buffer, int ava) {
-
+        Log.d("TAG","xyz 打印数组开始执行");
         try {
             for(int i=0;i<ava;i++){
                 Log.d("TAG","xyz 打印流中元素 byte["+i+"]"+"="+buffer[i]);
             }
-            //存储数据到本地文档里
-            FilesUtl.writeFile("Tests",buffer, Context.MODE_APPEND);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        onDataReceived(buffer,0,ava);
     }
 
     private void DisplayError(int resourceId) {
@@ -148,6 +148,7 @@ public class ServiceUpdateUI extends Service{
     public  void  onCreate(){
         Log.d("TAG","xyz 后台服务启动！");
 
+
         bufferList=new ArrayList<>();
         mApplication = (Application) getApplication();
         try {
@@ -156,7 +157,7 @@ public class ServiceUpdateUI extends Service{
             mInputStream = mSerialPort.getInputStream();
 
 			/* Create a receiving thread */
-            mReadThread = new ReadThread();
+            mReadThread = new ReadThread();   
             mReadThread.start();
         } catch (SecurityException e) {
             DisplayError(R.string.error_security);
@@ -164,12 +165,15 @@ public class ServiceUpdateUI extends Service{
             DisplayError(R.string.error_unknown);
         } catch (InvalidParameterException e) {
             DisplayError(R.string.error_configuration);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     protected  void onDataReceived(final byte[] buffer, int start,int end){
         String data=new String(buffer,start,end-start+1);
-        Intent intent=new Intent();
+        Intent intent=new Intent(MainActivity.ACTION_UPDATEUI);
+
         intent.putExtra("data",data);
         sendBroadcast(intent);
         Log.d("TAG","xyz 提莫的总算接收到合法的数据一条："+data);
@@ -198,6 +202,9 @@ public class ServiceUpdateUI extends Service{
     public IBinder onBind(Intent intent) {
         return null;
     }
+
+
+
 
 }
 
