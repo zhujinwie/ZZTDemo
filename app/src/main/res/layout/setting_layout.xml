@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="120dp"
+    android:layout_height="match_parent">
+<TextView
+    android:text="串口节点"
+    style="@style/OptionsTheme"
+    />
+    <android.support.v7.widget.AppCompatSpinner
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/serial_path_spinner"
+        android:padding="3dp"
+        >
+    </android.support.v7.widget.AppCompatSpinner>
+    <TextView
+        style="@style/OptionsTheme"
+        android:text="波特率"
+        />
+    <android.support.v7.widget.AppCompatSpinner
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/serial_baudrate_spinner"
+        android:padding="3dp">
+
+    </android.support.v7.widget.AppCompatSpinner>
+    <TextView
+        style="@style/OptionsTheme"
+        android:text="状态"/>
+    <TextView
+       android:layout_width="match_parent"
+        android:textSize="15sp"
+        android:textColor="#000000"
+        android:text="TX:0"
+        android:id="@+id/trans_data_tv"
+        android:layout_height="25dp"
+        android:padding="2dp"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        android:id="@+id/recv_data_tv"
+        android:padding="2dp"
+        android:text="RX:0"/>
+    <TextView
+        style="@style/OptionsTheme"
+        android:text="窗口操作"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/clear_btn"
+        android:text="清除"
+        android:textSize="15sp"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/save_data_btn"
+        android:text="保存窗口"
+        />
+    <TextView
+        style="@style/OptionsTheme"
+        android:text="串口操作"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="打开"
+        android:id="@+id/open_btn" />
+
+</LinearLayout>
