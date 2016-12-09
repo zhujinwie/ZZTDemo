@@ -38,8 +38,8 @@ public class Application extends android.app.Application {
 			//SharedPreferences sp = getSharedPreferences("android_serialport_api.sample_preferences", MODE_PRIVATE);
 			/*String path = sp.getString("DEVICE", "");//指定端口
 			int baudrate = Integer.decode(sp.getString("BAUDRATE", "-1"));//指定速率*/
-			String path="/dev/ttyS1";//手动指定端口名
-			int baudrate=4800;//指定速率
+			String path="/dev/ttyS0";//手动指定端口名
+			int baudrate=115200;//指定速率
 
 			/* Check parameters */
 			if ( (path.length() == 0) || (baudrate == -1)) {
@@ -48,7 +48,7 @@ public class Application extends android.app.Application {
 			}
 
 			/* Open the serial chmoport */
-			mSerialPort = new SerialPort(new File(path), baudrate, 0);
+			mSerialPort = new SerialPort(new File(path), baudrate, 8,1,'0');
 
 		}
 		return mSerialPort;
