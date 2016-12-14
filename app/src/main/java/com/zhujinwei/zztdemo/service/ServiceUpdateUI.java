@@ -6,16 +6,22 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 import com.zhujinwei.zztdemo.R;
+import com.zhujinwei.zztdemo.bean.AppConstant;
+import com.zhujinwei.zztdemo.fragments.FragmentD;
 import com.zhujinwei.zztdemo.ui.MainActivity;
 import com.zhujinwei.zztdemo.utils.FilesUtil;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +40,7 @@ public class ServiceUpdateUI extends Service{
     private InputStream mInputStream;
     private ReadThread mReadThread;
     private List<byte[]> bufferList;
-
+    private String msg;
 
     private class ReadThread extends Thread {
 
@@ -100,7 +106,7 @@ public class ServiceUpdateUI extends Service{
                     }
                     //在找到语句标志头后查找换行符
                     if(buffer[cursor]=='\n'){
-                        onDataReceived(buffer,start,cursor);
+                        onDataReceivedForImage(buffer,start,cursor);
                         break;
                     }
 
@@ -112,7 +118,9 @@ public class ServiceUpdateUI extends Service{
             }
         }
     }
-
+        /***
+         * 测试用，打印数组
+         * */
     private void showbuffer(byte[] buffer, int ava) {
         Log.d("TAG","xyz 打印数组开始执行");
         try {
@@ -120,12 +128,15 @@ public class ServiceUpdateUI extends Service{
                 Log.d("TAG","xyz 打印流中元素 byte["+i+"]"+"="+buffer[i]);
             }
 
-        } catch (Exception e) {
+        } catch (Exception e){
             e.printStackTrace();
         }
-        onDataReceived(buffer,0,ava);
+        onDataReceivedForText(buffer,0,ava);
     }
-
+        /**
+         *警告提示
+         * @param  resourceId 提示信息
+         * */
     private void DisplayError(int resourceId) {
 
         Toast.makeText(mApplication, resourceId, Toast.LENGTH_SHORT).show();
@@ -148,16 +159,24 @@ public class ServiceUpdateUI extends Service{
     public  void  onCreate(){
         Log.d("TAG","xyz 后台服务启动！");
 
-
+        msg="我是你爸爸";
+       // openSerialPort();
+    }
+    /**
+     * 读取，解析并发送解析后的数据
+     * @param device 设备路径
+     * @param baudrate 波特率
+     * */
+    private void openSerialPort(String device,int baudrate) {
         bufferList=new ArrayList<>();
-        mApplication = (Application) getApplication();
+
         try {
-            mSerialPort = mApplication.getSerialPort();
-            mOutputStream = mSerialPort.getOutputStream();
+            mSerialPort = getmSerialPort(device,baudrate);
+            mOutputStream =mSerialPort.getOutputStream();
             mInputStream = mSerialPort.getInputStream();
 
 			/* Create a receiving thread */
-            mReadThread = new ReadThread();   
+            mReadThread = new ReadThread();
             mReadThread.start();
         } catch (SecurityException e) {
             DisplayError(R.string.error_security);
@@ -168,18 +187,78 @@ public class ServiceUpdateUI extends Service{
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+    /**
+     * 获得串口通信的一个实例，并打开该串口
+     * @param device 设备地址
+     * @param baudrate 波特率
+     * @return 串口通信实例，使用mSerialPort 控制串口
+     * */
+    public SerialPort getmSerialPort(String device,int baudrate)throws SecurityException, IOException, InvalidParameterException {
+            //路径检查
+        if(device.isEmpty()||baudrate==-1){
+           throw new InvalidParameterException();
+        }
+        //实例化并打开串口
+        mSerialPort=new SerialPort(new File(device),baudrate,0);
+        return mSerialPort;
+    }
+    /**
+     * 通过串口发送数据
+     * */
+    public void sendData(String device,int baudrate,String commandstr){
+        //打开并接受数据
+        openSerialPort(device,baudrate);
+
+      //发送数据
+        OutputStreamWriter osw=new OutputStreamWriter(mOutputStream);
+        BufferedWriter bw=new BufferedWriter(osw,2048);
+        try {
+            bw.write(commandstr);
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
-    protected  void onDataReceived(final byte[] buffer, int start,int end){
+
+    /**
+     * 关闭串口
+     * */
+    public void closeSerialPort(){
+        //线程安全检查
+        if(mReadThread!=null){
+            mReadThread.interrupt();
+        }
+        mSerialPort.close();
+        mSerialPort=null;
+    }
+
+    /***
+     *符合0183协议的数据发送给MainActivity
+     */
+    protected  void onDataReceivedForImage(final byte[] buffer, int start,int end){
         String data=new String(buffer,start,end-start+1);
         Intent intent=new Intent(MainActivity.ACTION_UPDATEUI);
-
         intent.putExtra("data",data);
-        sendBroadcast(intent);
+       // sendBroadcast(intent);
         Log.d("TAG","xyz 提莫的总算接收到合法的数据一条："+data);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 }
-
-
+    /***
+     * 原始数据发送给FragmentD
+     * */
+    protected  void onDataReceivedForText(final byte[] buffer, int start,int end){
+        String data=new String(buffer,start,end-start+1);
+        Intent intent=new Intent(FragmentD.ACTION_UPDATARECEIVER);
+        intent.putExtra("data",data);
+        // sendBroadcast(intent);
+        Log.d("TAG","xyz 提莫的总算接收到合法的数据一条："+data);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+    }
 
     @Override
     public void onDestroy() {
@@ -203,8 +282,27 @@ public class ServiceUpdateUI extends Service{
         return null;
     }
 
+    /**
+     *servce接受UI命令，执行 打开/关闭，发送命令，，设置路径/波特率 等操作
+     * */
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+            msg=intent.getStringExtra("MSG");
+        String path=intent.getStringExtra("path");
+        String baudrate=intent.getStringExtra("baudrate");
+        int bau=Integer.valueOf(baudrate);
+            if(msg.equals(AppConstant.SerialPortMsg_OPENPORT)){
+                openSerialPort(path,bau);
+            }
+            else if(msg.equals(AppConstant.SerialPortMag_SENDMSG)){
+                String commandstr=intent.getStringExtra("message");
+                sendData(path,bau,commandstr);
+            }
+            else if(msg.equals(AppConstant.SerialPortMsg_CLOSEPORT)){
+                closeSerialPort();
+            }
 
-
-
+        return super.onStartCommand(intent, flags, startId);
+    }
 }
 
