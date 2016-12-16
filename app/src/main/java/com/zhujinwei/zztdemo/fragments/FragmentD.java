@@ -25,6 +25,8 @@ import android.widget.Toast;
 
 import com.zhujinwei.zztdemo.R;
 import com.zhujinwei.zztdemo.adapter.dataAdapter;
+import com.zhujinwei.zztdemo.bean.AppConstant;
+import com.zhujinwei.zztdemo.service.ServiceUpdateUI;
 import com.zhujinwei.zztdemo.utils.FilesUtil;
 
 import java.io.File;
@@ -46,48 +48,39 @@ public class FragmentD extends MyFragment{
 
     TextView receText,tranData,receData;//接受到的数据文本显示框，发送的字节数文本框，接受到的字节数文本框
     CheckBox autoCB,hexCB;//isAuto，isHex
-    Button clearBtn,saveBtn,openBtn,sendBtn;//清除，保存，打开，发送... 按钮
+    Button clearBtn,saveBtn,openBtn,sendBtn,closeBtn;//清除，保存，打开，发送，关闭... 按钮
     EditText timeET,sendDataET;//定时发送，发送文本 ...编辑框
     Spinner serPath,serBau,serShowType;//串口节点，波特率，显示 ...下拉框
     Application app;
-    SerialPort mSerialPort;
     SerialPortFinder mFinder;
-    List<String> pathList;
     String[] bauArr,showArr,paths;
     ArrayAdapter<String> bau_adapter,show_adapter,path_adapter;
     public final static String ACTION_UPDATARECEIVER="action_updatereceivcer";
+
     public UpdataTextViewReceiver myUpdateTVReceiver;
     public LocalBroadcastManager localBroadcastManager;
     FilesUtil filesutil;
+    boolean isOpen;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v=inflater.inflate(R.layout.fragmentd,container,false);
-
+        isOpen=false;
         //获取设备的所有串口路径
         app= (Application) getActivity().getApplication();
         mFinder=new SerialPortFinder();
-        pathList=new ArrayList<>();
-        bauArr=new String[19];
-        showArr=new String[4];
         paths=new String[]{};
         paths=mFinder.getAllDevicesPath();
 
-        try {
-            mSerialPort=app.getSerialPort();
 
+        bauArr=new String[19];
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        showArr=new String[4];
 
         //动态注册本地广播
         registerReceiver();
         //初始化视图
         initView(v);
-
-
         return v;
     }
     private void initView(View v){
@@ -109,18 +102,29 @@ public class FragmentD extends MyFragment{
         saveBtn= (Button) v.findViewById(R.id.save_data_btn);
         openBtn= (Button) v.findViewById(R.id.open_btn);
         sendBtn= (Button) v.findViewById(R.id.senddata_btn);
+        closeBtn= (Button) v.findViewById(R.id.close_btn);
 
         timeET= (EditText) v.findViewById(R.id.time_et);
         sendDataET= (EditText) v.findViewById(R.id.senddata_edit);
 
         serPath= (Spinner) v.findViewById(R.id.serial_path_spinner);
         serBau= (Spinner) v.findViewById(R.id.serial_baudrate_spinner);
+        serShowType= (Spinner) v.findViewById(R.id.serial_showtype_spinner);
 
         setSpinners();
         setButtons();
 
     }
-
+    /**
+     *给button加上点击事件
+     * 1.清空操作-receText.setText（null）;
+     * 2.保存操作-write2Path
+     * 3.打开串口-发送广播至service
+     * 4.发送命令-发送广播至service
+     * 5.关闭串口-发送广播至service
+     * 6.hexCB-按照hex显示接收的数据
+     * 7.autoCB-按照频率定时发送命令
+     * */
     private void setButtons() {
         //清空窗口
         clearBtn.setOnClickListener(new View.OnClickListener() {
@@ -141,10 +145,20 @@ public class FragmentD extends MyFragment{
             }
         });
 
-        //打开串口/关闭串口
+        //打开串口并开始读取数据
+        //串口操作放置与service中，开始，关闭和设置都需要由service执行
         openBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d("TAG","xyz 打开串口!");
+                Intent intent=new Intent();
+                intent.setAction(ServiceUpdateUI.ACTION_COMMANDRECEIVER);
+                intent.putExtra("MSG", AppConstant.SerialPortMsg_OPENPORT);
+                intent.putExtra("path",(String)serPath.getSelectedItem());
+                intent.putExtra("baudrate",(String)serBau.getSelectedItem());
+
+                LocalBroadcastManager.getInstance(getActivity().getApplication().getApplicationContext()).sendBroadcast(intent);
+
 
             }
         });
@@ -153,9 +167,36 @@ public class FragmentD extends MyFragment{
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d("TAG","xyz 发送命令！");
+                String message=sendDataET.getText().toString();
+                if(message==null) {
+                    sendDataET.setError("输入不能为空");
+                    return;
+                }
+
+                Intent intent=new Intent(ServiceUpdateUI.ACTION_COMMANDRECEIVER);
+                intent.putExtra("MSG",AppConstant.SerialPortMag_SENDMSG);
+                intent.putExtra("message",message);
+                intent.putExtra("path",(String)serPath.getSelectedItem());
+                intent.putExtra("baudrate",(String)serBau.getSelectedItem());
+               LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+            }
+        });
+        //关闭命令
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("TAG","XYZ 关闭串口!");
+                //关闭当前设备
+                Intent intent=new Intent(ServiceUpdateUI.ACTION_COMMANDRECEIVER);
+                intent.putExtra("MSG",AppConstant.SerialPortMsg_CLOSEPORT);
+                intent.putExtra("path",(String)serPath.getSelectedItem());
+                intent.putExtra("baudrate",(String)serBau.getSelectedItem());
+                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
 
             }
         });
+
 
         //autoCB
         autoCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -183,7 +224,9 @@ public class FragmentD extends MyFragment{
             }
         });
     }
-
+    /**
+     * 注册更新接受文本显示的本地广播
+     * */
     private void registerReceiver() {
         localBroadcastManager= LocalBroadcastManager.getInstance(getActivity());
         myUpdateTVReceiver=new UpdataTextViewReceiver();
@@ -201,19 +244,20 @@ public class FragmentD extends MyFragment{
         bauArr=getResources().getStringArray(R.array.baudratearr);
         showArr=getResources().getStringArray(R.array.showarr);
 
+
         bau_adapter=new ArrayAdapter<String>(getActivity(),R.layout.spinner_item_bigtext,bauArr);
         show_adapter=new ArrayAdapter<String>(getActivity(),R.layout.spinner_item_bigtext,showArr);
         path_adapter=new ArrayAdapter<String>(getActivity(),R.layout.spinner_item_bigtext,paths);
 
         serPath.setAdapter(path_adapter);
         serBau.setAdapter(bau_adapter);
-        //进行串口设置
+        serPath.setSelection(paths.length-1,true);
+        //进行串口路径设置
         serPath.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                    String path= (String) serPath.getSelectedItem();
-                    mSerialPort.setDevice(new File(path));
-                    showSerialPort();
+
             }
 
             @Override
@@ -221,12 +265,12 @@ public class FragmentD extends MyFragment{
 
             }
         });
+        //进行串口波特率设置
         serBau.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 int baudrate= Integer.valueOf((String) serBau.getSelectedItem());
-                mSerialPort.setBaudrate(baudrate);
-                showSerialPort();
+
             }
 
             @Override
@@ -234,6 +278,19 @@ public class FragmentD extends MyFragment{
 
             }
         });
+        //进行显示方式设置
+        serShowType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
     }
 
     //从MainActivity处接受数据
@@ -241,9 +298,7 @@ public class FragmentD extends MyFragment{
             Log.d("TAG","xyz FragmentD从MainAcitivity处接收到数据:"+data);
 
     }
-    public void showSerialPort(){
-        Toast.makeText(getActivity(),"当前串口的属性设置为:串口地址="+mSerialPort.getDevice()+"波特率为="+mSerialPort.getBaudrate(),Toast.LENGTH_LONG).show();
-    }
+
 
     public class UpdataTextViewReceiver extends BroadcastReceiver{
 
